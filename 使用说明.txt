@@ -1,0 +1,53 @@
+功能：由数据定义SQL脚本，生成C++代码，提供表结构类与数据库操作接口。
+
+作者：Mike
+
+运行环境：Perl
+
+使用方法：1.安装Perl；
+
+          2.将SQL文件(例如："MyDB.sql")放到"input"文件夹下；
+
+          3.修改"run.bat"文件内容，格式："perl SqlC.pl [SQL文件名] [命名空间] [开关参数]"，
+            例如："perl Sql2Cpp.pl MyDB.sql MyNameSpace -mfc -sqlite3"（以下以"MyNameSpace"为例）；
+            开关参数：-mfc，在MFC工程中使用；
+                      -sqlite3，提供SQLite3数据库操作接口（需要将"sqlite3.h"和"sqlite3.lib"添加到工程中）。
+
+	  4.运行"run.bat"；
+
+          5.将"output"文件夹中生成的文件添加到C++工程中，引用"MyNameSpace.h"。
+
+
+SQL文件要求：
+
+1.每个字段定义单独一行；
+
+2.能够识别的字段类型关键字：INT, INTEGER, CHAR(*), VARCHAR(*), DATE, TIME, DATETIME（不区分大小写）。
+
+
+C++接口描述：
+
+1.数据库的每一张表对应一个C++类(在"MyNameSpace"命名空间下)，类名以"C_"开头，加上表名。
+
+2.整型字段对应的成员类型为int,字符串或日期/时间字段对应的成员类型为string，成员变量名与字段名相同。
+
+3.对象的IsNull_*()方法：判断字段是否为空；SetNull_*()方法：给字段赋值为空。
+
+4.对象的Set_*(*)方法：给字段赋值；对象的Get_*()方法：字段取值。也可以直接用‘=’赋值、取值。
+  注意：直接读取值为空的字段会导致程序中止，除非确定字段不可能为空，否则先用IsNull_*()方法判断。
+
+5.对象的SetCurrent_*()方法：日期/时间字段特有赋值方法，用当前时间赋值。
+
+6.对象的Drop_*()方法：丢弃字段；DropAllFields()方法：丢弃所有字段。
+  注意：被丢弃的字段不加入增、改操作的SQL语句。
+
+7.MyNameSpace::SafeString(string)方法：返回string，将字符串中的“'”替换为“''”。
+
+8.对象的GetInsertSql()和GetUpdateSql(char*)方法：返回string，获取增、改操作的SQL语句。
+  GetUpdateSql的参数：查询条件（where后面的字符串），为NULL或空串表示不加限制条件。
+
+9.生成代码时打开"-sqlite3"开关:
+  对象的Add(sqlite3*)，Update(sqlite3*,char*)方法：SQLite3数据库增、改操作；
+  类的静态Delete(sqlite3*,char*)方法：SQLite3数据库删除操作；
+  重载MyNameSpace::GetDataSet(vector<C_*>*,sqlite3*,char*)方法：数据库查询操作（根据参数类型vector<C_*>的不同查询不同的表）。
+  Update,Delete,GetDataSet方法的最后一个char*类型参数为查询条件。
