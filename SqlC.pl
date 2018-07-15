@@ -273,7 +273,7 @@ foreach $line (@lines_in)
 				print FILE_OUT_CPP "\t{\n";
 				print FILE_OUT_CPP "\t\tsql += \"$field_names[$i]=\";\n";
 				print FILE_OUT_CPP "\t\tif($member_names[$i]_IsNull_)\n";
-				print FILE_OUT_CPP "\t\t\tstr2 += \"NULL\";\n";
+				print FILE_OUT_CPP "\t\t\tsql += \"NULL\";\n";
 				print FILE_OUT_CPP "\t\telse\n";
 				print FILE_OUT_CPP "\t\t{\n";
 				if($member_types[$i] eq "int")
